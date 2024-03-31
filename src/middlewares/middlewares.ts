@@ -28,7 +28,7 @@ export class Middlewares {
     }
   };
 
-  public checkUserData = (req: Request, res: Response, next: NextFunction) => {
+  public checkUserData = (req: Request, _res: Response, next: NextFunction) => {
     const { name, email, password } = req.body;
     if (!name) {
       next(new AppError(400, "Name is required"));
