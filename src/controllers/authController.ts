@@ -1,8 +1,11 @@
 import { JwtFunctions } from "@jwt/jwtFunctions";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import userService from "@services/userService";
+import AppError from "@errors/AppError";
+import { Base64 } from "@utils/Basse64";
 
 const jwt = new JwtFunctions();
+const base64 = new Base64();
 
 type jwtPayload = {
   id: string;
@@ -13,23 +16,30 @@ const jwtOptions = {
   expiresIn: "1d",
 };
 
-const login = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
-  const user = await userService.getByEmail(email);
-  if (!user) {
-    return res.status(401).json({ message: "Invalid email or password" });
-  }
-  const isPasswordValid = password === user.password;
-  if (!isPasswordValid) {
-    return res.status(401).json({ message: "Invalid email or password" });
-  }
-  const token = jwt.sign(
-    { id: user.id },
-    jwtSecret,
-    jwtOptions
-  );
-
-  res.status(200).json({ token });
+const login = async (req: Request, res: Response, next: NextFunction) => {
+  const { email, password }: {email: string, password: string} = req.body;
+  // try {
+  //   const user = await userService.getByEmail(email);
+  //   if (!user) {
+  //     throw new AppError(401, "Invalid email or password");
+  //   }
+  //   const isPasswordValid = password === user.password;
+    
+  //   if (!isPasswordValid) {
+  //     throw new AppError(401, "Invalid email or password");
+  //   }
+  //   const token = jwt.sign(
+  //     { id: user.id },
+  //     jwtSecret,
+  //     jwtOptions
+  //   );
+  //   res.status(200).json({ token });
+  // } catch (error) {
+  //   next(error);
+  // }
+  const encodedEmail = base64.encode(email);
+  const encodedPassword = base64.encode(password);
+  res.status(200).json({ encodedEmail, encodedPassword, decodedEmail: base64.decode(encodedEmail), decodedPassword: base64.decode(encodedPassword) });
 };
 
 const verify = async (req: Request, res: Response) => {
