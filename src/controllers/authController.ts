@@ -1,8 +1,9 @@
-import { JwtFunctions } from "@jwt/jwtFunctions";
-import { NextFunction, Request, Response } from "express";
-import userService from "@services/userService";
+import { userLoginData } from "@cTypes/userTypes";
 import AppError from "@errors/AppError";
-import { Base64 } from "@utils/Basse64";
+import { JwtFunctions } from "@jwt/jwtFunctions";
+import userService from "@services/userService";
+import { Base64 } from "@utils/Base64";
+import { NextFunction, Request, Response } from "express";
 
 const jwt = new JwtFunctions();
 const base64 = new Base64();
@@ -17,29 +18,27 @@ const jwtOptions = {
 };
 
 const login = async (req: Request, res: Response, next: NextFunction) => {
-  const { email, password }: {email: string, password: string} = req.body;
-  // try {
-  //   const user = await userService.getByEmail(email);
-  //   if (!user) {
-  //     throw new AppError(401, "Invalid email or password");
-  //   }
-  //   const isPasswordValid = password === user.password;
-    
-  //   if (!isPasswordValid) {
-  //     throw new AppError(401, "Invalid email or password");
-  //   }
-  //   const token = jwt.sign(
-  //     { id: user.id },
-  //     jwtSecret,
-  //     jwtOptions
-  //   );
-  //   res.status(200).json({ token });
-  // } catch (error) {
-  //   next(error);
-  // }
-  const encodedEmail = base64.encode(email);
-  const encodedPassword = base64.encode(password);
-  res.status(200).json({ encodedEmail, encodedPassword, decodedEmail: base64.decode(encodedEmail), decodedPassword: base64.decode(encodedPassword) });
+  const { email, password }: userLoginData = req.body;
+  try {
+    const user = await userService.getByEmail(email);
+    if (!user) {
+      throw new AppError(401, "Invalid email or password");
+    }
+    const decodedPassword = base64.decode(user.password);
+    const isPasswordValid = password === decodedPassword;
+
+    if (!isPasswordValid) {
+      throw new AppError(401, "Invalid email or password");
+    }
+    const token = jwt.sign(
+      { id: user.id },
+      jwtSecret,
+      jwtOptions
+    );
+    res.status(200).json({ token });
+  } catch (error) {
+    next(error);
+  }
 };
 
 const verify = async (req: Request, res: Response) => {
