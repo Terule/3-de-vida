@@ -27,4 +27,18 @@ export class Middlewares {
       res.status(err.statusCode).json({ name: err.name, message: err.message});
     }
   };
+
+  public checkUserData = (req: Request, res: Response, next: NextFunction) => {
+    const { name, email, password } = req.body;
+    if (!name) {
+      next(new AppError(400, "Name is required"));
+    }
+    if (!email) {
+      next(new AppError(400, "Email is required"));
+    }
+    if (!password) {
+      next(new AppError(400, "Password is required"));
+    }
+    next();
+  }
 }
