@@ -1,4 +1,5 @@
 import AppError from "@errors/AppError";
+import { PrismaError } from "@errors/PrismaError";
 import { Prisma } from "@prisma/client";
 import prisma from "@utils/prismaClient";
 import { userData } from "types/userTypes";
@@ -18,18 +19,25 @@ const create = async (userData: userData) => {
     });
     return user;
   } catch (error) {
+    console.log(error);
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       switch (error.code) {
         case "P2002":
-          throw new AppError(400, "Email already in use");
+          throw new PrismaError(400, "Email already in use", "P2002");
+        default:
+          throw new AppError(500, "Internal server error");
+      }
+    }
+    if (error instanceof Prisma.PrismaClientInitializationError) {
+      switch (error.errorCode) {
         case "P1000":
-          throw new AppError(503, "Database host user name or password is incorrect");
+          throw new PrismaError(503, "Database's host user name or password is incorrect", "P1000");
         case "P1001":
-          throw new AppError(503, "Cannot connect to database host");
+          throw new PrismaError(500, "Connection to database failed", "P1001");
         case "P1002":	
-          throw new AppError(408, "Database connection timed out");
+          throw new PrismaError(408, "Database is not reachable", "P1002");
         case "P1003":
-          throw new AppError(503, "Database does not exist");
+          throw new PrismaError(503, "Database is not running", "P1003");
         default:
           throw new AppError(500, "Internal server error");
       }
