@@ -26,7 +26,9 @@
       "@middlewares/*": ["middlewares/*"],
       "@utils/*": ["utils/*"],
       "@cTypes/*": ["types/*"],
-      "@routes/*": ["routes/*"]
+      "@routes/*": ["routes/*"],
+      "@jwt/*": ["jwt/*"],
+      "@errors/*": ["errors/*"]
     }
   },
   "include": ["next-env.d.ts", "twin.d.ts", "**/*.ts", "**/*.tsx"],
